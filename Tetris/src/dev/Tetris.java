@@ -39,7 +39,7 @@ public class Tetris {
 		while (true) {
 			spawnBlock();
 			try {
-				Thread.sleep(500);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) { e.printStackTrace(); }
 			panel.repaint();
 		}
@@ -57,7 +57,7 @@ public class Tetris {
 		Color color = Color.decode( colors[(int)(Math.random()*6)] );
 		
 		//initialize block object and add it to arraylist
-		Block block = new Block(x,y,color);
+		Block block = new Block(x,y,color, (int)(Math.random()*7));
 		blockList.add(block);
 	}
 	
