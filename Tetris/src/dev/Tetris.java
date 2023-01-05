@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
@@ -13,13 +15,17 @@ import javax.swing.JPanel;
 public class Tetris {
 	
 	//GAME
-	ArrayList<Block> blockList = new ArrayList<Block>();
+	ArrayList<Block> placedBlocks = new ArrayList<Block>();
+	Block block;
+	long prev = System.currentTimeMillis();
+	long current = prev;
 	
 	//DISPLAY
 	JFrame window;
 	GFXPanel panel;
 	int panW = Block.size*10;
 	int panH = Block.size*20;
+	int REFRESH = 144; //refresh rate
 	
 	public static void main (String[] args) { new Tetris(); }
 
@@ -32,25 +38,39 @@ public class Tetris {
 		window.add(panel);
 		window.pack();
 		window.setVisible(true);
-
-		panel.repaint();
 		
+		setup();
 		
 		while (true) {
-			spawnBlock();
+
+			//MOVE BLOCK DOWN EVERY SECOND
+			current = System.currentTimeMillis();
+			if (current-prev >= 1000)  {
+				moveBlockDown(); //move block down every second
+				prev = System.currentTimeMillis();
+			}
+			
+			//CHECK IF BLOCK HAS HIT THE GROUND OR ANOTHER PLACED BLOCK
+			checkBlock();
+			
+			
 			try {
-				Thread.sleep(1000);
+				Thread.sleep((int)1000/REFRESH);
 			} catch (InterruptedException e) { e.printStackTrace(); }
+			
 			panel.repaint();
 		}
 	}
 	
-	public void spawnBlock() {
+	public void setup() {
+		block = spawnBlock();
+	}
+	
+	public Block spawnBlock() {
 		
-		//get random position
-		int x = (int)(Math.random()*10)*Block.size;
-		int y = (int)(Math.random()*20)*Block.size;
-		System.out.println(x + " " + y);
+		//get position
+		int x = panW/2;
+		int y = 0;
 		
 		//get random color
 		String colors[] = {"#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"};
@@ -58,7 +78,38 @@ public class Tetris {
 		
 		//initialize block object and add it to arraylist
 		Block block = new Block(x,y,color, (int)(Math.random()*7));
-		blockList.add(block);
+		return block;
+		
+	}
+	
+	public void moveBlockDown() {
+		block.y += Block.size;
+	}
+	
+	public void adjustBlockPosition(String direction) {
+		if (direction.equals("DOWN")) {
+			block.y += Block.size;
+		}
+		else if (direction.equals("LEFT")) {
+			block.x -= Block.size;
+		}
+		else if (direction.equals("RIGHT")) {
+			block.x += Block.size;
+		}
+	}
+	
+	public void rotateBlock(String direction) {
+	}
+	
+	public void checkBlock() {
+		
+		if (block.y >= panH-Block.size) {
+			placedBlocks.add(block);
+			block = spawnBlock();
+		}
+		
+		//TODO: check if block is above a placed block
+		
 	}
 	
 	@SuppressWarnings("serial")
@@ -66,20 +117,50 @@ public class Tetris {
 		
 		GFXPanel() {
 			this.setPreferredSize(new Dimension(panW,panH));
+			this.addKeyListener(new Keyboard());
+			this.setFocusable(true);
 		}
 		
 		//to draw stuff
 		public void paintComponent (Graphics g) {
 			super.paintComponent(g);
-			//g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,  RenderingHints.VALUE_ANTIALIAS_ON); //antialiasing
 			
-			//to draw a square:
+			//draw current block
+			block.draw(g);
 			
-			//Block block = new Block(100,100, Color.decode("#ff0000"));
-			//g.fillRect(block.x, block.y, Block.width, Block.height);
-			for (Block b : blockList) {
+			//draw placed blocks
+			for (Block b : placedBlocks) {
 				b.draw(g);
 			}
+		}
+		
+	}
+	
+	class Keyboard implements KeyListener {
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			final int LEFT = 37;
+			final int RIGHT = 39;
+			final int DOWN = 40;
+			
+			String direction = "";
+			if (e.getKeyCode() == LEFT) direction = "LEFT";
+			else if (e.getKeyCode() == RIGHT) direction = "RIGHT";
+			else if (e.getKeyCode() == DOWN) direction = "DOWN";
+			
+			adjustBlockPosition(direction);
+			
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 	}

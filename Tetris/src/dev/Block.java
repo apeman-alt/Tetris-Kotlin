@@ -65,6 +65,8 @@ public class Block {
 		
 	}
 	
+	//TODO: methods to get the extremum of the block
+	
 	//to draw the block
 	void draw(Graphics g) {
 		g.setColor(color);
