@@ -8,6 +8,7 @@ import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -99,6 +100,65 @@ public class Tetris {
 	}
 	
 	public void rotateBlock(String direction) {
+		//All blocks are represented by a "direction vector", where [0,0] is the anchor block, and [1,0] is a block 1 unit to the right of the anchor, etc.
+		//Based on Linear Algebra principles, vectors can undergo "linear transformations" such as stretching, compressing, and in our case--rotating
+		//Any linear transformation of a vector can be represented by product of a transformation matrix and the vector
+		//To rotate the vectors, we need 2 matrices, one to increase the vector's angle by 90 degrees (counter clockwise),
+		//and one to decrease the angle by 90 degrees (clockwise)
+		
+		//Therefore, to rotate the block (remember, the block is made up of direction vectors), then we need to multiply
+		//each direction vector by the appropriate rotation matrix such that A*v0 = v1, where A is the matrix, v0 the original vector, and v1 the rotated vector  
+		
+		
+		//to learn how these matrices were derived, read about "2x2 rotation matrix"
+		int[][] clockwiseMatrix = {
+				{ 0 , 1 },
+				{-1 , 0 }
+		};
+		int[][] counterClockwiseMatrix = {
+				{ 0 ,-1 },
+				{ 1 , 0 }
+		};
+		
+		int[][] rotationMatrix = null;
+		
+		
+		if (direction.equals("CLOCKWISE")) {
+			rotationMatrix = clockwiseMatrix;
+		}
+		else if (direction.equals("COUNTERCLOCKWISE")) {
+			rotationMatrix = counterClockwiseMatrix;
+		}
+		
+		
+		//multiply direction vector by rotation matrix
+		for (int i = 0; i < block.vectors.length; i++) {
+			
+			/*
+			 * FOR MATRIX MULTIPLICATION IN THE FORM OF
+			 * 
+			 *  _    _  _ _     _  _
+			 * | a  b || x |   | x1 |
+			 * | c  d || y | = | y1 |
+			 * 
+			 */
+			
+			int x = block.vectors[i][0];
+			int y = block.vectors[i][1];
+			
+			int a = rotationMatrix[0][0];
+			int b = rotationMatrix[0][1];
+			int c = rotationMatrix[1][0];
+			int d = rotationMatrix[1][1];
+			
+			int x1 = a*x + b*y;
+			int y1 = c*x + d*y;
+			
+			block.vectors[i][0] = x1;
+			block.vectors[i][1] = y1;
+			
+		}
+		
 	}
 	
 	public void checkBlock() {
@@ -140,6 +200,12 @@ public class Tetris {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
+			if (e.getKeyChar() == 'z') {
+				rotateBlock("CLOCKWISE");
+			}
+			else if (e.getKeyChar() == 'x') {
+				rotateBlock("COUNTERCLOCKWISE");
+			}
 		}
 
 		@Override
