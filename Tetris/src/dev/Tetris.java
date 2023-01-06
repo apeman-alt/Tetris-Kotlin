@@ -52,19 +52,21 @@ public class Tetris {
 			}
 			
 			//CHECK IF BLOCK HAS HIT THE GROUND OR ANOTHER PLACED BLOCK
+
+			sleep(1000/REFRESH);
 			checkBlock();
-			
-			
-			try {
-				Thread.sleep((int)1000/REFRESH);
-			} catch (InterruptedException e) { e.printStackTrace(); }
-			
 			panel.repaint();
 		}
 	}
 	
 	public void setup() {
 		block = spawnBlock();
+	}
+	
+	public void sleep(double sleepTime) {
+		try {
+			Thread.sleep((int)sleepTime);
+		} catch (InterruptedException e) { e.printStackTrace(); }
 	}
 	
 	public Block spawnBlock() {
@@ -79,6 +81,12 @@ public class Tetris {
 		
 		//initialize block object and add it to arraylist
 		Block block = new Block(x,y,color, (int)(Math.random()*7));
+		
+		//to make sure the block doesn't go beyond border when spawning
+		while (block.getHighestPoint() < 0) {
+			block.y += Block.size;
+		}
+		
 		return block;
 		
 	}
@@ -100,7 +108,7 @@ public class Tetris {
 	}
 	
 	public void rotateBlock(String direction) {
-		//All blocks are represented by a "direction vector", where [0,0] is the anchor block, and [1,0] is a block 1 unit to the right of the anchor, etc.
+		//All blocks are represented by a set of "direction vectors", where [0,0] is the anchor block, and [1,0] is a block 1 unit to the right of the anchor, etc.
 		//Based on Linear Algebra principles, vectors can undergo "linear transformations" such as stretching, compressing, and in our case--rotating
 		//Any linear transformation of a vector can be represented by product of a transformation matrix and the vector
 		//To rotate the vectors, we need 2 matrices, one to increase the vector's angle by 90 degrees (counter clockwise),
@@ -132,7 +140,7 @@ public class Tetris {
 		
 		
 		//multiply direction vector by rotation matrix
-		for (int i = 0; i < block.vectors.length; i++) {
+		for (int i = 0; i < block.vectors.size(); i++) {
 			
 			/*
 			 * FOR MATRIX MULTIPLICATION IN THE FORM OF
@@ -143,8 +151,8 @@ public class Tetris {
 			 * 
 			 */
 			
-			int x = block.vectors[i][0];
-			int y = block.vectors[i][1];
+			int x = block.vectors.get(i)[0];
+			int y = block.vectors.get(i)[1];
 			
 			int a = rotationMatrix[0][0];
 			int b = rotationMatrix[0][1];
@@ -154,8 +162,8 @@ public class Tetris {
 			int x1 = a*x + b*y;
 			int y1 = c*x + d*y;
 			
-			block.vectors[i][0] = x1;
-			block.vectors[i][1] = y1;
+			block.vectors.get(i)[0] = x1;
+			block.vectors.get(i)[1] = y1;
 			
 		}
 		
@@ -163,12 +171,32 @@ public class Tetris {
 	
 	public void checkBlock() {
 		
-		if (block.y >= panH-Block.size) {
+		//check if block has reached the ground
+		if (block.getLowestPoint() >= panH - Block.size) {
 			placedBlocks.add(block);
 			block = spawnBlock();
+			return;
 		}
 		
-		//TODO: check if block is above a placed block
+		//check if block is on top of another block
+		for (int[] v : block.vectors) {
+			for (Block p : placedBlocks) {
+				for (int[] pv : p.vectors) {
+					//Essentially, check if one of the block's vectors is directly on top of one of the vectors of a placed block
+			
+					if ( block.x + Block.size*v[0] == p.x + Block.size*pv[0]) {
+						
+						if ( block.y + Block.size*v[1] == p.y + Block.size*pv[1] - Block.size) {
+							
+							placedBlocks.add(block);
+							block = spawnBlock();
+							return;
+							
+						}
+					}
+				}		
+			}
+		}
 		
 	}
 	
@@ -192,6 +220,14 @@ public class Tetris {
 			for (Block b : placedBlocks) {
 				b.draw(g);
 			}
+			
+			//draw grid
+			g.setColor(Color.decode("#e0e0e0"));
+			for (int i = 0; i < panW/Block.size; i++) 
+				g.drawLine(i*Block.size, 0, i*Block.size, panH);
+			for (int i = 0; i < panH/Block.size; i++)
+				g.drawLine(0, i*Block.size, panW, i*Block.size);
+			
 		}
 		
 	}
@@ -223,11 +259,7 @@ public class Tetris {
 			
 		}
 
-		@Override
-		public void keyReleased(KeyEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
+		@Override public void keyReleased(KeyEvent e) {}
 		
 	}
 	
