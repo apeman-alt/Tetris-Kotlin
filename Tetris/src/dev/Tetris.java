@@ -100,10 +100,61 @@ public class Tetris {
 			block.y += Block.size;
 		}
 		else if (direction.equals("LEFT")) {
-			block.x -= Block.size;
+
+			boolean canMoveLeft = true;
+			
+			//check if block is directly to the left of border
+			if (block.getLeftmostPoint() <= 0) canMoveLeft = false;
+			
+			//check if block is directly to the left of a placed block
+			for (int[] v : block.vectors) {
+				
+				for (Block p : placedBlocks) {
+					
+					for (int[] pv : p.vectors) {
+						
+						//if they're at the same height
+						if (block.y + v[1]*Block.size == p.y + pv[1]*Block.size) {
+							
+							//if the block vector is one space left of the placed block vector
+							if (block.x + v[0]*Block.size <= p.x + pv[0]*Block.size + Block.size) {
+								canMoveLeft = false;
+							}	
+						}
+					}	
+				}
+			}
+			
+			if (canMoveLeft) block.x -= Block.size;
+			
 		}
 		else if (direction.equals("RIGHT")) {
-			block.x += Block.size;
+			
+			boolean canMoveRight = true;
+			
+			//check if block is directly to the right of border
+			if (block.getRightmostPoint() >= panW-Block.size) canMoveRight = false;
+			
+			//check if block is directly to the left of a placed block
+			for (int[] v : block.vectors) {
+				
+				for (Block p : placedBlocks) {
+					
+					for (int[] pv : p.vectors) {
+						
+						//if they're at the same height
+						if (block.y + v[1]*Block.size == p.y + pv[1]*Block.size) {
+							
+							//if the block vector is one space left of the placed block vector
+							if (block.x + v[0]*Block.size >= p.x + pv[0]*Block.size - Block.size) {
+								canMoveRight = false;
+							}	
+						}
+					}	
+				}
+			}
+			
+			if (canMoveRight) block.x += Block.size;
 		}
 	}
 	
