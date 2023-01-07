@@ -55,6 +55,7 @@ public class Tetris {
 
 			sleep(1000/REFRESH);
 			checkBlock();
+			checkRows();
 			panel.repaint();
 		}
 	}
@@ -261,6 +262,56 @@ public class Tetris {
 					}
 				}		
 			}
+		}
+	}
+	
+	public void checkRows() {
+		
+		int[] numOfBlocksPerRow = new int[panH/Block.size];
+		for (int i = 0; i < numOfBlocksPerRow.length; i++) numOfBlocksPerRow[i] = 0;
+		
+		for (Block p : placedBlocks) {
+			
+			for (int[] pv : p.vectors) {
+				int row = (p.y + pv[1]*Block.size)/Block.size;
+				numOfBlocksPerRow[row] += 1;
+			}
+		}
+		
+		//check if there are 10 blocks in a row
+		for (int i = 0; i < numOfBlocksPerRow.length; i++) {
+			System.out.println(numOfBlocksPerRow[i]);
+			if (numOfBlocksPerRow[i] == panW/Block.size) {
+				clearRow(i*Block.size);
+				//i = 0;
+			}
+		}
+		
+	}
+	
+	public void clearRow(int y) {
+		
+		//clear any full row
+		for (Block p : placedBlocks) {
+			
+			//for (int[] pv : p.vectors) {
+			for (int i = 0; i < p.vectors.size(); i++) {
+				
+				if (p.y + p.vectors.get(i)[1]*Block.size == y) {
+					p.vectors.remove(i);
+					i-=1;
+				}
+			}
+		}
+		
+		//move the above blocks down
+		for (Block p : placedBlocks) {
+			
+			for (int[] pv : p.vectors) {
+				
+				if (p.y + pv[1]*Block.size < y) pv[1]+=1;				
+			}
+			
 		}
 		
 	}
