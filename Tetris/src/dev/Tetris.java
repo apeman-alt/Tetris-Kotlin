@@ -167,6 +167,20 @@ public class Tetris {
 			
 		}
 		
+		//adjust if block went over border after rotation
+		
+		while (block.getLeftmostPoint() < 0) {
+			block.x += Block.size;
+		}
+		
+		while (block.getRightmostPoint() > panW-Block.size) {
+			block.x -= Block.size;
+		}
+		
+		while (block.getLowestPoint() > panH-Block.size) {
+			block.x -= Block.size;
+		}
+		
 	}
 	
 	public void checkBlock() {
