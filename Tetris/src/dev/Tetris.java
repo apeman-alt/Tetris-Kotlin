@@ -81,7 +81,8 @@ public class Tetris {
 		Color color = Color.decode( colors[(int)(Math.random()*6)] );
 		
 		//initialize block object and add it to arraylist
-		Block block = new Block(x,y,color, (int)(Math.random()*7));
+		int type = (int)(Math.random()*7);
+		Block block = new Block(x,y,color, type);
 		
 		//to make sure the block doesn't go beyond border when spawning
 		while (block.getHighestPoint() < 0) {
@@ -280,16 +281,20 @@ public class Tetris {
 		
 		//check if there are 10 blocks in a row
 		for (int i = 0; i < numOfBlocksPerRow.length; i++) {
-			System.out.println(numOfBlocksPerRow[i]);
+			//System.out.println(numOfBlocksPerRow[i]);
 			if (numOfBlocksPerRow[i] == panW/Block.size) {
 				clearRow(i*Block.size);
-				//i = 0;
+				numOfBlocksPerRow[i] = 0;
+				i = 0;
 			}
 		}
 		
 	}
 	
+	//MORE TESTING NEEDED
 	public void clearRow(int y) {
+		
+		System.out.println("Clearing line " + y/Block.size);
 		
 		//clear any full row
 		for (Block p : placedBlocks) {
@@ -309,7 +314,9 @@ public class Tetris {
 			
 			for (int[] pv : p.vectors) {
 				
-				if (p.y + pv[1]*Block.size < y) pv[1]+=1;				
+				if (p.y + pv[1]*Block.size < y) {
+					pv[1]+=1;				
+				}
 			}
 			
 		}
@@ -357,6 +364,9 @@ public class Tetris {
 			}
 			else if (e.getKeyChar() == 'x') {
 				rotateBlock("COUNTERCLOCKWISE");
+			}
+			else if (e.getKeyChar() == 'q') {
+				block = spawnBlock();
 			}
 		}
 

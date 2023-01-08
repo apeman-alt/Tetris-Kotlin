@@ -86,7 +86,7 @@ public class Block {
 		}
 		//Straight
 		else if (type == 4) {
-			//int [][]shapeVectors = {{0,0}, {1,0}, {2,0}, {0,-1}};
+			//int [][]shapeVectors = {{0,0}, {1,0}, {2,0}, {-1,0}};
 			//return shapeVectors;
 			int[] vector1 = {0,0};
 			vectors.add(vector1);
@@ -94,7 +94,7 @@ public class Block {
 			vectors.add(vector2);
 			int[] vector3 = {2,0};
 			vectors.add(vector3);
-			int[] vector4 = {0,-1};
+			int[] vector4 = {-1,0};
 			vectors.add(vector4);
 		}
 		//Left Zig Zag
