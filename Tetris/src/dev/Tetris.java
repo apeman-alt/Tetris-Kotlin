@@ -20,6 +20,9 @@ public class Tetris {
 	Block block;
 	long prev = System.currentTimeMillis();
 	long current = prev;
+	boolean gameIsRunning = true;
+	int level = 0;
+	int score = 0;
 	
 	//DISPLAY
 	JFrame window;
@@ -32,7 +35,7 @@ public class Tetris {
 
 	Tetris() {
 		//config display window
-		window = new JFrame("Tetris");
+		window = new JFrame("Tetris - Score: " + score);
 		panel = new GFXPanel();
 		window.setResizable(false);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,19 +47,23 @@ public class Tetris {
 		
 		while (true) {
 
-			//MOVE BLOCK DOWN EVERY SECOND
-			current = System.currentTimeMillis();
-			if (current-prev >= 1000)  {
-				moveBlockDown(); //move block down every second
-				prev = System.currentTimeMillis();
+			if(gameIsRunning) {
+				//MOVE BLOCK DOWN EVERY SECOND
+				current = System.currentTimeMillis();
+				if (current-prev >= 1000)  {
+					moveBlockDown(); //move block down every second
+					prev = System.currentTimeMillis();
+				}
+				
+				//CHECK IF BLOCK HAS HIT THE GROUND OR ANOTHER PLACED BLOCK
+	
+				checkBlock();
+				checkRows();
+				checkGameStatus();
+				panel.repaint();
 			}
 			
-			//CHECK IF BLOCK HAS HIT THE GROUND OR ANOTHER PLACED BLOCK
-
 			sleep(1000/REFRESH);
-			checkBlock();
-			checkRows();
-			panel.repaint();
 		}
 	}
 	
@@ -269,6 +276,7 @@ public class Tetris {
 	public void checkRows() {
 		
 		int[] numOfBlocksPerRow = new int[panH/Block.size];
+		int numOfRowsCleared = 0;
 		for (int i = 0; i < numOfBlocksPerRow.length; i++) numOfBlocksPerRow[i] = 0;
 		
 		for (Block p : placedBlocks) {
@@ -284,10 +292,62 @@ public class Tetris {
 			//System.out.println(numOfBlocksPerRow[i]);
 			if (numOfBlocksPerRow[i] == panW/Block.size) {
 				clearRow(i*Block.size);
+				numOfRowsCleared++;
 				numOfBlocksPerRow[i] = 0;
 				i = 0;
 			}
 		}
+		
+		getScore(numOfRowsCleared);
+		
+	}
+	
+	public void checkGameStatus() {
+		
+		for (Block p : placedBlocks) {
+			
+			for (int[] pv : p.vectors) {
+				
+				if (p.y + pv[1]*Block.size == 0) {
+					
+					window.setTitle("Game Over - Press Space to restart");
+					gameIsRunning = false;
+					return;
+					
+				}
+				
+			}
+			
+		}
+		
+	}
+	
+	public void restart() {
+		
+		placedBlocks.clear();
+		block = spawnBlock();
+		//reset score
+		window.setTitle("Tetris");
+		gameIsRunning = true;
+		
+	}
+	
+	public void getScore(int numOfLinesCleared) {
+		
+		if (numOfLinesCleared == 1) {
+			score += 40*(level+1);
+		}
+		else if (numOfLinesCleared == 2) {
+			score += 100*(level+1);
+		}
+		else if (numOfLinesCleared == 3) {
+			score += 300*(level+1);
+		}
+		else if (numOfLinesCleared == 4) {
+			score += 1200*(level+1);
+		}
+		
+		window.setTitle("Tetris - Score: " + score);
 		
 	}
 	
@@ -367,6 +427,13 @@ public class Tetris {
 			}
 			else if (e.getKeyChar() == 'q') {
 				block = spawnBlock();
+			}
+			else if (e.getKeyChar() == ' ') {
+				
+				if (!gameIsRunning) {
+					restart();
+				}
+				
 			}
 		}
 
