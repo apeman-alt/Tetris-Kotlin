@@ -13,27 +13,28 @@ import java.util.Arrays;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Tetris {
+public class Game {
 	
 	//GAME
-	ArrayList<Block> placedBlocks = new ArrayList<Block>();
-	Block block;
-	long prev = System.currentTimeMillis();
-	long current = prev;
-	boolean gameIsRunning = true;
-	int level = 0;
-	int score = 0;
+	private static ArrayList<Block> placedBlocks = new ArrayList<Block>();
+	private static Block block;
+	public static boolean isRunning = true;
+	private static int level = 0;
+	private static int score = 0;
 	
 	//DISPLAY
-	JFrame window;
-	GFXPanel panel;
-	int panW = Block.size*10;
-	int panH = Block.size*20;
-	int REFRESH = 144; //refresh rate
+	static JFrame window;
+	static GFXPanel panel;
+	static int panW = Block.size*10;
+	static int panH = Block.size*20;
+	static int REFRESH = 144; //refresh rate
 	
-	public static void main (String[] args) { new Tetris(); }
+//	public static void main (String[] args) { 
+//		new Game(); 
+//		}
 
-	Tetris() {
+	//Game(GFXPanel panel) {
+	Game() {
 		//config display window
 		window = new JFrame("Tetris - Score: " + score);
 		panel = new GFXPanel();
@@ -44,40 +45,22 @@ public class Tetris {
 		window.setVisible(true);
 		
 		setup();
+		new LogicThread().start();
+		new GraphicsThread().start();
 		
-		while (true) {
-
-			if(gameIsRunning) {
-				//MOVE BLOCK DOWN EVERY SECOND
-				current = System.currentTimeMillis();
-				if (current-prev >= 1000)  {
-					moveBlockDown(); //move block down every second
-					prev = System.currentTimeMillis();
-				}
-				
-				//CHECK IF BLOCK HAS HIT THE GROUND OR ANOTHER PLACED BLOCK
-	
-				checkBlock();
-				checkRows();
-				checkGameStatus();
-				panel.repaint();
-			}
-			
-			sleep(1000/REFRESH);
-		}
 	}
 	
 	public void setup() {
 		block = spawnBlock();
 	}
 	
-	public void sleep(double sleepTime) {
+	public static void sleep(double sleepTime) {
 		try {
 			Thread.sleep((int)sleepTime);
 		} catch (InterruptedException e) { e.printStackTrace(); }
 	}
 	
-	public Block spawnBlock() {
+	public static Block spawnBlock() {
 		
 		//get position
 		int x = panW/2;
@@ -100,11 +83,13 @@ public class Tetris {
 		
 	}
 	
-	public void moveBlockDown() {
+	public static void moveBlockDown() {
 		block.y += Block.size;
 	}
 	
 	public void adjustBlockPosition(String direction) {
+		//checkBlock();
+		
 		if (direction.equals("DOWN")) {
 			block.y += Block.size;
 		}
@@ -243,10 +228,11 @@ public class Tetris {
 		
 	}
 	
-	public void checkBlock() {
+	public static void checkBlock() {
 		
 		//check if block has reached the ground
 		if (block.getLowestPoint() >= panH - Block.size) {
+			sleep(1000);
 			placedBlocks.add(block);
 			block = spawnBlock();
 			return;
@@ -261,7 +247,9 @@ public class Tetris {
 					if ( block.x + Block.size*v[0] == p.x + Block.size*pv[0]) {
 						
 						if ( block.y + Block.size*v[1] == p.y + Block.size*pv[1] - Block.size) {
-							
+						
+							sleep(1000);
+							//checkBlock();
 							placedBlocks.add(block);
 							block = spawnBlock();
 							return;
@@ -273,7 +261,7 @@ public class Tetris {
 		}
 	}
 	
-	public void checkRows() {
+	public static void checkRows() {
 		
 		int[] numOfBlocksPerRow = new int[panH/Block.size];
 		int numOfRowsCleared = 0;
@@ -302,7 +290,7 @@ public class Tetris {
 		
 	}
 	
-	public void checkGameStatus() {
+	public static void checkGameStatus() {
 		
 		for (Block p : placedBlocks) {
 			
@@ -311,7 +299,7 @@ public class Tetris {
 				if (p.y + pv[1]*Block.size == 0) {
 					
 					window.setTitle("Game Over - Press Space to restart");
-					gameIsRunning = false;
+					isRunning = false;
 					return;
 					
 				}
@@ -328,11 +316,11 @@ public class Tetris {
 		block = spawnBlock();
 		//reset score
 		window.setTitle("Tetris");
-		gameIsRunning = true;
+		isRunning = true;
 		
 	}
 	
-	public void getScore(int numOfLinesCleared) {
+	public static void getScore(int numOfLinesCleared) {
 		
 		if (numOfLinesCleared == 1) {
 			score += 40*(level+1);
@@ -352,7 +340,7 @@ public class Tetris {
 	}
 	
 	//MORE TESTING NEEDED
-	public void clearRow(int y) {
+	public static void clearRow(int y) {
 		
 		System.out.println("Clearing line " + y/Block.size);
 		
@@ -419,37 +407,39 @@ public class Tetris {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
-			if (e.getKeyChar() == 'z') {
-				rotateBlock("CLOCKWISE");
-			}
-			else if (e.getKeyChar() == 'x') {
-				rotateBlock("COUNTERCLOCKWISE");
-			}
-			else if (e.getKeyChar() == 'q') {
-				block = spawnBlock();
-			}
-			else if (e.getKeyChar() == ' ') {
-				
-				if (!gameIsRunning) {
-					restart();
+			if (isRunning) {
+				if (e.getKeyChar() == 'z') {
+					rotateBlock("CLOCKWISE");
 				}
-				
+				else if (e.getKeyChar() == 'x') {
+					rotateBlock("COUNTERCLOCKWISE");
+				}
+				else if (e.getKeyChar() == 'q') {
+					block = spawnBlock();
+				}
+			}
+			
+			else {
+				if (e.getKeyChar() == ' ') {
+						restart();
+				}
 			}
 		}
 
 		@Override
 		public void keyPressed(KeyEvent e) {
-			final int LEFT = 37;
-			final int RIGHT = 39;
-			final int DOWN = 40;
-			
-			String direction = "";
-			if (e.getKeyCode() == LEFT) direction = "LEFT";
-			else if (e.getKeyCode() == RIGHT) direction = "RIGHT";
-			else if (e.getKeyCode() == DOWN) direction = "DOWN";
-			
-			adjustBlockPosition(direction);
-			
+			if (isRunning) {
+				final int LEFT = 37;
+				final int RIGHT = 39;
+				final int DOWN = 40;
+				
+				String direction = "";
+				if (e.getKeyCode() == LEFT) direction = "LEFT";
+				else if (e.getKeyCode() == RIGHT) direction = "RIGHT";
+				else if (e.getKeyCode() == DOWN) direction = "DOWN";
+				
+				adjustBlockPosition(direction);
+			}
 		}
 
 		@Override public void keyReleased(KeyEvent e) {}
