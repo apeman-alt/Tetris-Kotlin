@@ -150,6 +150,13 @@ public class Game {
 			
 			if (canMoveRight) block.x += Block.size;
 		}
+		
+//		if (block.getLowestPoint() >= panH - Block.size) {
+//			placedBlocks.add(block);
+//			block = spawnBlock();
+//		}
+		checkBlock();
+		
 	}
 	
 	public void rotateBlock(String direction) {
@@ -232,7 +239,7 @@ public class Game {
 		
 		//check if block has reached the ground
 		if (block.getLowestPoint() >= panH - Block.size) {
-			sleep(1000);
+			//sleep(1000);
 			placedBlocks.add(block);
 			block = spawnBlock();
 			return;
@@ -248,7 +255,7 @@ public class Game {
 						
 						if ( block.y + Block.size*v[1] == p.y + Block.size*pv[1] - Block.size) {
 						
-							sleep(1000);
+							//sleep(1000);
 							//checkBlock();
 							placedBlocks.add(block);
 							block = spawnBlock();
