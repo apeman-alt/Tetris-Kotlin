@@ -42,6 +42,7 @@ public class Game {
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.add(panel);
 		window.pack();
+		window.setLocationRelativeTo(null);	
 		window.setVisible(true);
 		
 		setup();
@@ -230,19 +231,23 @@ public class Game {
 		}
 		
 		while (block.getLowestPoint() > panH-Block.size) {
-			block.x -= Block.size;
+			block.y -= Block.size;
+		}
+		
+		while (block.getHighestPoint() < 0) {
+			block.y += Block.size;
 		}
 		
 	}
 	
-	public static void checkBlock() {
+	public static boolean checkBlock() {
 		
 		//check if block has reached the ground
 		if (block.getLowestPoint() >= panH - Block.size) {
 			//sleep(1000);
 			placedBlocks.add(block);
 			block = spawnBlock();
-			return;
+			return false;
 		}
 		
 		//check if block is on top of another block
@@ -259,13 +264,15 @@ public class Game {
 							//checkBlock();
 							placedBlocks.add(block);
 							block = spawnBlock();
-							return;
+							return false;
 							
 						}
 					}
 				}		
 			}
 		}
+		
+		return true;
 	}
 	
 	public static void checkRows() {
@@ -293,7 +300,7 @@ public class Game {
 			}
 		}
 		
-		getScore(numOfRowsCleared);
+		updateScore(numOfRowsCleared);
 		
 	}
 	
@@ -301,33 +308,26 @@ public class Game {
 		
 		for (Block p : placedBlocks) {
 			
-			for (int[] pv : p.vectors) {
-				
-				if (p.y + pv[1]*Block.size == 0) {
-					
-					window.setTitle("Game Over - Press Space to restart");
-					isRunning = false;
-					return;
-					
-				}
-				
+			if (p.getHighestPoint() <= Block.size) {
+				window.setTitle("Game Over - Press ENTER to restart");
+				isRunning = false;
+				return;
 			}
-			
+				
 		}
-		
 	}
 	
 	public void restart() {
 		
 		placedBlocks.clear();
 		block = spawnBlock();
-		//reset score
-		window.setTitle("Tetris");
+		score = 0;
+		window.setTitle("Tetris - Score: " + score);
 		isRunning = true;
 		
 	}
 	
-	public static void getScore(int numOfLinesCleared) {
+	public static void updateScore(int numOfLinesCleared) {
 		
 		if (numOfLinesCleared == 1) {
 			score += 40*(level+1);
@@ -348,8 +348,6 @@ public class Game {
 	
 	//MORE TESTING NEEDED
 	public static void clearRow(int y) {
-		
-		System.out.println("Clearing line " + y/Block.size);
 		
 		//clear any full row
 		for (Block p : placedBlocks) {
@@ -378,6 +376,15 @@ public class Game {
 		
 	}
 	
+	public void dropBlock() {
+		
+		if (checkBlock()) {
+			block.y += Block.size;
+			dropBlock();
+		}
+		
+	}
+	
 	@SuppressWarnings("serial")
 	class GFXPanel extends JPanel {
 		
@@ -398,6 +405,10 @@ public class Game {
 			for (Block b : placedBlocks) {
 				b.draw(g);
 			}
+			
+			//draw block shadow
+			//block.drawShadow(g);
+			//BROKEN
 			
 			//draw grid
 			g.setColor(Color.decode("#e0e0e0"));
@@ -424,17 +435,15 @@ public class Game {
 				else if (e.getKeyChar() == 'q') {
 					block = spawnBlock();
 				}
-			}
-			
-			else {
-				if (e.getKeyChar() == ' ') {
-						restart();
+				else if (e.getKeyChar() == ' ' ) {
+					dropBlock();
 				}
 			}
 		}
 
 		@Override
 		public void keyPressed(KeyEvent e) {
+
 			if (isRunning) {
 				final int LEFT = 37;
 				final int RIGHT = 39;
@@ -446,6 +455,14 @@ public class Game {
 				else if (e.getKeyCode() == DOWN) direction = "DOWN";
 				
 				adjustBlockPosition(direction);
+			}
+			
+			else {
+				final int ENTER = 10;
+				
+				if (e.getKeyCode() == ENTER) {
+					restart();
+				}
 			}
 		}
 

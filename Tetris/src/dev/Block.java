@@ -204,4 +204,35 @@ public class Block {
 		}
 	}
 	
+	public void drawShadow(Graphics g) {
+		
+		//BROKEN
+		
+		int shadowX = x;
+		int shadowY = y;
+		
+		while (Game.checkBlock()) {
+			shadowY += size;
+		}
+		
+		
+		int red = color.getRed();
+		int green = color.getGreen();
+		int blue = color.getBlue();
+		if (red + 170 <= 255) red+=170;
+		if (green + 170 <= 255) green+=170;
+		if (blue + 170 <= 255) blue+=170;
+		
+		Color shadCol = new Color(red,green,blue);
+		g.setColor(shadCol);
+		
+		for (int i = 0; i < vectors.size(); i++) {
+			
+			g.fillRect(shadowX + (size*vectors.get(i)[0]), shadowY + (size*vectors.get(i)[1]), size,size);
+			
+		}
+		
+		
+	}
+	
 }
